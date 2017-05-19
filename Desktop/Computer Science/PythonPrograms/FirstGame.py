@@ -1,10 +1,21 @@
 import pygame, sys
 from pygame.locals import *
 
+BLACK = (  0,   0,   0)
+WHITE = (255, 255, 255)
+RED   = (255,   0,   0)
+GREEN = (  0, 255,   0)
+BLUE  = (  0,   0, 255)
+
 pygame.init()
 
 DISPLAYSURF = pygame.display.set_mode((400,300))
 pygame.display.set_caption('Snake: By Sanjit and Thomas')
+
+def new_dot():
+    pygame.draw.circle(gameDisplay, WHITE,\
+    (random.randint(50, 1230), random.randint(50, 750)), 3, 0)
+    pygame.display.update()
 
 
 done = False
