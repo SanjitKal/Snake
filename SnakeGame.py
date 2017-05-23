@@ -6,21 +6,22 @@ from pygame.locals import *
 pygame.init()
 
 #Colors
-BLACK = (  0,   0,   0)
-WHITE = (255, 255, 255)
-RED   = (255,   0,   0)
-GREEN = (  0, 255,   0)
-BLUE  = (  0,   0, 255)
+BLACK = (  0,   0,   0, 255)
+WHITE = (255, 255, 255, 255)
+RED   = (255,   0,   0 , 255)
+GREEN = (  0, 255,   0, 255)
+BLUE  = (  0,   0, 255, 255)
 
 #CellWidth
 CELLSIZE = 35
 
 #FPS
-FPS = 60
+FPS = 10
 fpsClock = pygame.time.Clock()
 
 #Snake
 snake = Snakey()
+direction = None
 
 #AppleInfo
 applePos = [random.randint(0,19),random.randint(0,19)]
@@ -45,8 +46,23 @@ def drawGrid():
         pygame.draw.line(DISPLAYSURF,WHITE,(i*CELLSIZE,0),(i*CELLSIZE,700))
         pygame.draw.line(DISPLAYSURF,WHITE,(0,i*CELLSIZE),(700,i*CELLSIZE))
 
+def collision():
+    global direction
+    if snake.head()[0] < 0 or snake.head()[0] > 19:
+        gameOver()
+    if snake.head()[1] < 0 or snake.head()[1] > 19:
+        gameOver()
+    COLOR = DISPLAYSURF.get_at((snake.head()[0]*CELLSIZE,snake.head()[1]*CELLSIZE))
+    if COLOR == GREEN and direction is not None:
+        gameOver()
+        
+
+def gameOver():
+    pygame.quit()
+    sys.exit()
+    
 def gameLoop():
-    direction = None
+    global direction
     drawApple()
     drawSnake()
     while True:
@@ -64,8 +80,9 @@ def gameLoop():
             elif pressed[K_DOWN]:
                 direction = snake.moveDown
         if direction is not None:
-            coverSquare(snake.tail())
             direction()
+            collision()
+            coverSquare(snake.prevTailPos)
         if snake.head()[0] == applePos[0] and snake.head()[1] == applePos[1]:
             snake.grow()
             drawApple()
