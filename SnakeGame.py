@@ -5,6 +5,9 @@ from pygame.locals import *
 #Initialize Pygame
 pygame.init()
 
+pygame.font.init()
+font = pygame.font.Font(None, 48)
+
 #Colors
 BLACK = (  0,   0,   0, 255)
 WHITE = (255, 255, 255, 255)
@@ -16,7 +19,7 @@ BLUE  = (  0,   0, 255, 255)
 CELLSIZE = 35
 
 #FPS
-FPS = 10
+FPS = 15
 fpsClock = pygame.time.Clock()
 
 #Snake
@@ -27,7 +30,12 @@ direction = None
 applePos = [random.randint(0,19),random.randint(0,19)]
 
 DISPLAYSURF = pygame.display.set_mode((700,700))
-pygame.display.set_caption('Snake     Score: ')
+
+#Game State
+score = 0
+end = False
+
+pygame.display.set_caption('Snake     Score: ' + str(score))
 
 def drawApple():
     global applePos
@@ -49,20 +57,34 @@ def drawGrid():
 def collision():
     global direction
     if snake.head()[0] < 0 or snake.head()[0] > 19:
-        gameOver()
+        return True
     if snake.head()[1] < 0 or snake.head()[1] > 19:
-        gameOver()
+        return True
     COLOR = DISPLAYSURF.get_at((snake.head()[0]*CELLSIZE,snake.head()[1]*CELLSIZE))
     if COLOR == GREEN and direction is not None:
-        gameOver()
+        return True
         
 
-def gameOver():
-    pygame.quit()
-    sys.exit()
+def end_game(display):
+    display.fill(BLACK)
+    text = font.render("Game Over: Play Again(y/n)?", True, WHITE)
+    display.blit(text, (124,300))
+    pygame.display.update()
+
+def reset(display):
+    global score, direction, snake, end
+    end = False
+    score = 0
+    direction = None
+    snake = Snakey()
+    display.fill(BLACK)
+    gameLoop()
+    
+    
+
     
 def gameLoop():
-    global direction
+    global direction, score, end
     drawApple()
     drawSnake()
     while True:
@@ -79,18 +101,30 @@ def gameLoop():
                 direction = snake.moveUp
             elif pressed[K_DOWN]:
                 direction = snake.moveDown
-        if direction is not None:
-            direction()
-            collision()
-            coverSquare(snake.prevTailPos)
-        if snake.head()[0] == applePos[0] and snake.head()[1] == applePos[1]:
-            snake.grow()
-            drawApple()
-        drawSnake()
-        #drawGrid()
-        pygame.display.update()
-        fpsClock.tick(FPS)
-        
-
+            elif end:
+                if pressed[K_y]:
+                    reset(DISPLAYSURF)
+                if pressed[K_n]:
+                    pygame.quit()
+                    sys.exit()
+        if not end:
+            if direction is not None:
+                direction()
+                if collision():
+                    end = True
+                    end_game(DISPLAYSURF)
+                coverSquare(snake.prevTailPos)
+        if not end:
+            if snake.head()[0] == applePos[0] and snake.head()[1] == applePos[1]:
+                score += 1
+                pygame.display.set_caption('Snake     Score: ' + str(score))
+                snake.grow()
+                drawApple()
+            drawSnake()
+            #drawGrid()
+            pygame.display.update()
+            fpsClock.tick(FPS)
 
 gameLoop()
+
+
